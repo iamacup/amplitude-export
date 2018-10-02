@@ -1,0 +1,9 @@
+.DS_Store
+*.log
+
+node_modules
+configuration-items/environments/arango/data-in/dump/
+
+*.sublime-workspace
+
+out

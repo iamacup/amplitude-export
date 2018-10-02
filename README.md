@@ -16,8 +16,8 @@ Edit the index.js file and change the past and now variables to decide when you 
 
 With `npm`:
 
-    npm start <API USERNAME> <API PASSWORD>
+    npm start <aptitude username> <aptitude password>
 
 or with `yarn`:
 
-    yarn start <API USERNAME> <API PASSWORD>
+    yarn start <aptitude username> <aptitude password>

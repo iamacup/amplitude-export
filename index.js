@@ -13,8 +13,8 @@ const start = `${dateFormat(past, "yyyymmdd", true)}T${dateFormat(past, "HH", tr
 const end = `${dateFormat(now, "yyyymmdd", true)}T${dateFormat(now, "HH", true)}`;
 
 const auth = {
-  username: process.argv[2],
-  password: process.argv[3],
+  username: process.argv[3],
+  password: process.argv[4],
 };
 
 const url = 'https://amplitude.com/api/2/export';
@@ -72,6 +72,13 @@ const exportFields = [
   'client_event_time',
 ];
 
+const fieldMax = 31;
+
+for(let fc=1; fc<fieldMax; fc++) {
+  exportFields.push('custom_props_name_'+fc);
+  exportFields.push('custom_props_value_'+fc);
+}
+
 const getFilesAndFolders = async (dir, keepDotFiles=false) => {
   
   return new Promise((resolve, reject) => {
@@ -100,13 +107,16 @@ const getFilesAndFolders = async (dir, keepDotFiles=false) => {
   
 };
 
-const clearDirs = async () => {
+const clearDirs = async (clearInput) => {
 
   execSync(`rm -rf ${path}/csv/*`);
   execSync(`rm -rf ${path}/gzip/*`);
   execSync(`rm -rf ${path}/json/*`);
-  execSync(`rm -rf ${path}/zip/*`);
   execSync(`rm -rf ${path}/json-combined/*`);
+
+  if(clearInput === true) {
+    execSync(`rm -rf ${path}/zip/*`);
+  }
 
 };
 
@@ -166,6 +176,29 @@ const JSONReader = async () => {
     
     for(let b=0; b<lines.length; b++) {
       const obj = JSON.parse(lines[b]);
+      const keys = Object.keys(obj.event_properties);
+
+      if(keys.length > 0) {
+        let count = 1;
+
+        for(let c=1; c<keys.length; c++) {
+          obj['custom_props_name_'+c] = keys[c];
+          obj['custom_props_value_'+c] = obj.event_properties[keys[c]];
+
+          count++;
+        }
+
+        for(let c=count; c<fieldMax; c++) {
+          obj['custom_props_name_'+c] = null;
+          obj['custom_props_value_'+c] = null;
+        }
+      } else {
+        for(let c=1; c<fieldMax; c++) {
+          obj['custom_props_name_'+c] = null;
+          obj['custom_props_value_'+c] = null;
+        }
+      }
+
       arr.push(obj);
     }
   }
@@ -183,15 +216,24 @@ const JSONReader = async () => {
 const run = async() => {
 
   try {
-    console.log(`Getting data from ${start} to ${end}`);
+    console.log(`You can run this with either node index.js or node index.js download apiuser apipass - specifying download will download data`)
     console.log('');
 
-    await clearDirs();
+    if(process.argv[2] === 'download') {
 
-    //DOWNLOAD THE STUFF
-    console.log('Starting Download');
-    await getExport();
-    console.log('Downloaded OK!');
+      console.log(`DOWNLOADING - Getting data from ${start} to ${end}`);
+
+      //DOWNLOAD THE STUFF
+      await clearDirs(true);
+
+      console.log('Starting Download');
+      await getExport();
+      console.log('Downloaded OK!');
+    } else {
+      console.log(`NOT DOWNLOADING`);
+
+      await clearDirs(false);
+    }
 
     //DO INITIAL EXTRACT
     console.log('Starting Extract 1');
@@ -207,6 +249,8 @@ const run = async() => {
     console.log('Starting JSON Parse');
     await JSONReader();
     console.log('Finishing JSON Parse');
+
+   
 
   } catch(err) {
     console.log(err);

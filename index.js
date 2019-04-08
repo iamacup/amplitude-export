@@ -109,10 +109,18 @@ const getFilesAndFolders = async (dir, keepDotFiles=false) => {
 
 const clearDirs = async (clearInput) => {
 
-  execSync(`rm -rf ${path}/csv/*`);
-  execSync(`rm -rf ${path}/gzip/*`);
-  execSync(`rm -rf ${path}/json/*`);
-  execSync(`rm -rf ${path}/json-combined/*`);
+  // we delete the directory then remake it because the 
+  // argument list gets too long otherwise
+  // for rm -rf ${path}/dir/*
+  execSync(`rm -rf ${path}/csv`);
+  execSync(`rm -rf ${path}/gzip`);
+  execSync(`rm -rf ${path}/json`);
+  execSync(`rm -rf ${path}/json-combined`);
+
+  execSync(`mkdir ${path}/csv`);
+  execSync(`mkdir ${path}/gzip`);
+  execSync(`mkdir ${path}/json`);
+  execSync(`mkdir ${path}/json-combined`);
 
   if(clearInput === true) {
     execSync(`rm -rf ${path}/zip/*`);
@@ -158,7 +166,7 @@ const secondaryExtract = async () => {
     const files = await getFilesAndFolders(`${path}/gzip/${folders[a]}`);
 
     for(let b=0; b<files.length; b++) {
-      execSync(`gunzip -c ${path}/gzip/${folders[a]}/${files[b]} > ${path}/json/${files[b]}.${a}.${b}.json`);
+      execSync(`gunzip -c "${path}/gzip/${folders[a]}/${files[b]}" > "${path}/json/${files[b]}.${a}.${b}.json"`);
     }
   }
 

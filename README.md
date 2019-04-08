@@ -14,23 +14,18 @@
 
 Edit the index.js file and change the past and now variables to decide when you want the export to be performed from/to
 
-With `npm`:
-
-    npm start download <aptitude username> <aptitude password>
-
-or with `yarn`:
-
-    yarn start download <aptitude username> <aptitude password>
+    node index.js download <aptitude username> <aptitude password>
 
 ## Extracting an existing export
 
 Place the zip file you recieved from the amplitude data export tool in out/zip/ and name it data.zip
 
-With `npm`:
+    node index.js
 
-    npm start
+## Running out of memory / JavaScript Heap
 
-or with `yarn`:
+it is possible to run out of memory when executing - if this happens you will see a message about the heap. You can append `--max-old-space-size=8192` to your command like this:
 
-    yarn start
+    node --max-old-space-size=8192 index.js
 
+Which will set the heap to 8 GB, you can vary the 8192 value to whatever you need.

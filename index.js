@@ -6,7 +6,7 @@ const Path = require('path');
 const Json2csvParser = require('json2csv').Parser;
 const execSync = require('child_process').execSync;
 
-const past = new Date('01 July 2018');
+const past = new Date('13 January 2020');
 const now = new Date();
 
 const start = `${dateFormat(past, "yyyymmdd", true)}T${dateFormat(past, "HH", true)}`;
@@ -143,6 +143,7 @@ const getExport = async () => {
   });
 
   // pipe the result stream into a file on disc
+  execSync(`mkdir -p ${path}/zip/`);
   response.data.pipe(fs.createWriteStream(`${path}/zip/data.zip`));
 
   // return a promise and resolve when download finishes

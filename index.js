@@ -6,7 +6,7 @@ const Path = require('path');
 const Json2csvParser = require('json2csv').Parser;
 const execSync = require('child_process').execSync;
 
-const past = new Date('01 May 2019');
+const past = new Date('08 August 2019');
 const now = new Date();
 
 const start = `${dateFormat(past, "yyyymmdd", true)}T${dateFormat(past, "HH", true)}`;
@@ -230,6 +230,8 @@ const JSONReader = async () => {
         csvarr.push(obj);
       }
     }
+
+    jsonstr = jsonstr.substring(0, jsonstr.length-3);
 
     fs.writeFileSync(`${path}/json-combined/${date}-out.json`, `[${jsonstr}]`);
 

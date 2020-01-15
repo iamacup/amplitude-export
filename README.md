@@ -1,4 +1,4 @@
-# A tool that exports amplitude data and saves it as a huge JSON object and CSV file, it will also flatten any custom event properties onto the data in the CSV / JSON
+# A tool that exports amplitude data or takes an existing amplitude export and combines all of the data into a single file (JSON) per date (day). It also creates a flattened CSV file with all event properties as columns for non technical usage in excel
 
 ## Setup:
 
@@ -29,7 +29,7 @@ node index.js
 
 ### Running out of memory / JavaScript Heap
 
-it is possible to run out of memory when executing - if this happens you will see a message about the heap. You can append `--max-old-space-size=8192` to your command like this:
+it is possible to run out of memory when executing on very large data sets - if this happens you will see a message about the heap. You can append `--max-old-space-size=8192` to your command like this:
 
 ```bash
 node --max-old-space-size=8192 index.js

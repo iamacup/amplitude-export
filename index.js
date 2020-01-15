@@ -6,7 +6,7 @@ const Path = require('path');
 const Json2csvParser = require('json2csv').Parser;
 const execSync = require('child_process').execSync;
 
-const past = new Date('13 January 2020');
+const past = new Date('01 May 2019');
 const now = new Date();
 
 const start = `${dateFormat(past, "yyyymmdd", true)}T${dateFormat(past, "HH", true)}`;
@@ -177,48 +177,67 @@ const JSONReader = async () => {
 
   //we assume that the JSON files are 1 object per line, no terminating comma on the line and empty line at the end of each file.
   const files = await getFilesAndFolders(`${path}/json/`);
-
-  const arr = [];
+  const dates = {};
 
   for(let a=0; a<files.length; a++) {
-    const lines = fs.readFileSync(`${path}/json/${files[a]}`, 'utf8').split('\n').filter(Boolean);
-    
-    for(let b=0; b<lines.length; b++) {
-      const obj = JSON.parse(lines[b]);
-      const keys = Object.keys(obj.event_properties);
+    const file = files[a];
 
-      if(keys.length > 0) {
-        let count = 1;
+    const regex = /[0-9]+_([0-9_-]+)_[0-9]+#/mi;
 
-        for(let c=1; c<keys.length; c++) {
-          obj['custom_props_name_'+c] = keys[c];
-          obj['custom_props_value_'+c] = obj.event_properties[keys[c]];
+    const date = file.match(regex)[1];
 
-          count++;
-        }
-
-        for(let c=count; c<fieldMax; c++) {
-          obj['custom_props_name_'+c] = null;
-          obj['custom_props_value_'+c] = null;
-        }
-      } else {
-        for(let c=1; c<fieldMax; c++) {
-          obj['custom_props_name_'+c] = null;
-          obj['custom_props_value_'+c] = null;
-        }
-      }
-
-      arr.push(obj);
+    if(!dates[date]) {
+      dates[date] = [];
     }
+
+    dates[date].push(file); 
   }
 
-  const JSONstr = JSON.stringify(arr);
-  fs.writeFileSync(`${path}/json-combined/out.json`, JSONstr);
+  for(const date in dates) {
+    const csvarr = [];
+    let jsonstr = '';
 
-  const json2csvParser = new Json2csvParser({ fields: exportFields });
-  const csv = json2csvParser.parse(arr);
+    for(let a=0; a<dates[date].length; a++) {
+      const lines = fs.readFileSync(`${path}/json/${dates[date][a]}`, 'utf8').split('\n').filter(Boolean);
+      
+      for(let b=0; b<lines.length; b++) {
+        jsonstr += `${lines[b]},\r\n`;
+
+        const obj = JSON.parse(lines[b]);
+        const keys = Object.keys(obj.event_properties);
+
+        if(keys.length > 0) {
+          let count = 1;
+
+          for(let c=1; c<keys.length; c++) {
+            obj['custom_props_name_'+c] = keys[c];
+            obj['custom_props_value_'+c] = obj.event_properties[keys[c]];
+
+            count++;
+          }
+
+          for(let c=count; c<fieldMax; c++) {
+            obj['custom_props_name_'+c] = null;
+            obj['custom_props_value_'+c] = null;
+          }
+        } else {
+          for(let c=1; c<fieldMax; c++) {
+            obj['custom_props_name_'+c] = null;
+            obj['custom_props_value_'+c] = null;
+          }
+        }
+
+        csvarr.push(obj);
+      }
+    }
+
+    fs.writeFileSync(`${path}/json-combined/${date}-out.json`, `[${jsonstr}]`);
+
+    const json2csvParser = new Json2csvParser({ fields: exportFields });
+    const csv = json2csvParser.parse(csvarr);
    
-  fs.writeFileSync(`${path}/csv/out.csv`, csv);
+    fs.writeFileSync(`${path}/csv/${date}-out.csv`, csv);
+  }
 
 };
 
@@ -258,9 +277,6 @@ const run = async() => {
     console.log('Starting JSON Parse');
     await JSONReader();
     console.log('Finishing JSON Parse');
-
-   
-
   } catch(err) {
     console.log(err);
   }
